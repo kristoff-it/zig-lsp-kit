@@ -107,9 +107,10 @@ pub fn EnumCustomStringValues(comptime T: type, comptime contains_empty_enum: bo
             for (fields[0 .. fields.len - 1], 0..) |field, i| {
                 kvs_array[i] = .{ field.name, @field(T, field.name) };
             }
-            break :build_kvs kvs_array[0..];
+            const res = kvs_array[0..].*;
+            break :build_kvs &res;
         };
-        const map = std.ComptimeStringMap(T, kvs);
+        const map = std.StaticStringMap(T).initComptime(kvs);
 
         pub fn eql(a: T, b: T) bool {
             const tag_a = std.meta.activeTag(a);
@@ -820,7 +821,7 @@ pub const CodeActionKind = union(enum) {
         if (helpers.map.get(str)) |val| return val;
         // Some clients (nvim) may report these by the enumeration names rather than the
         // actual strings, so let's check those names here
-        const aliases = std.ComptimeStringMap(CodeActionKind, .{
+        const aliases = std.StaticStringMap(CodeActionKind).initComptime(.{
             .{ "Empty", .empty },
             .{ "QuickFix", .quickfix },
             .{ "Refactor", .refactor },
