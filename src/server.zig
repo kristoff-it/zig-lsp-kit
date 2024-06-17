@@ -470,7 +470,7 @@ const RequestMethodSet = blk: {
     for (types.request_metadata, &kvs_list) |meta, *kv| {
         kv.* = .{meta.method};
     }
-    break :blk std.ComptimeStringMap(void, &kvs_list);
+    break :blk std.StaticStringMap(void).initComptime(&kvs_list);
 };
 
 const NotificationMethodSet = blk: {
@@ -479,7 +479,7 @@ const NotificationMethodSet = blk: {
     for (types.notification_metadata, &kvs_list) |meta, *kv| {
         kv.* = .{meta.method};
     }
-    break :blk std.ComptimeStringMap(void, &kvs_list);
+    break :blk std.StaticStringMap(void).initComptime(&kvs_list);
 };
 
 /// return true if there is a request with the given method name
