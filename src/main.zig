@@ -8,7 +8,10 @@ pub fn main() !void {
     var general_purpose_allocator = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = general_purpose_allocator.deinit();
 
-    const allocator: std.mem.Allocator = general_purpose_allocator.allocator();
+    const allocator = switch (builtin.cpu.arch) {
+        .wasm32 => std.heap.wasm_allocator,
+        else => general_purpose_allocator.allocator(),
+    };
 
     var transport = Transport.init(
         std.io.getStdIn().reader(),
