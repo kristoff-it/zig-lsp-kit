@@ -102,7 +102,7 @@ pub fn EnumCustomStringValues(comptime T: type, comptime contains_empty_enum: bo
     return struct {
         const kvs = build_kvs: {
             const KV = struct { []const u8, T };
-            const fields = @typeInfo(T).Union.fields;
+            const fields = @typeInfo(T).@"union".fields;
             var kvs_array: [fields.len - 1]KV = undefined;
             for (fields[0 .. fields.len - 1], 0..) |field, i| {
                 kvs_array[i] = .{ field.name, @field(T, field.name) };
@@ -2269,7 +2269,7 @@ pub const InitializeParams = struct {
     /// the server.
     ///
     /// Is `null` if the process has not been started by another process.
-    /// If the parent process is not alive then the server should exit.
+    /// If the parent process is not alive then the server should _exit.
     processId: ?i32 = null,
     /// Information about the client
     ///

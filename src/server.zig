@@ -572,7 +572,7 @@ pub const Message = struct {
 
                 const msg_params = object.get("params") orelse .null;
 
-                const fields = @typeInfo(Request.Params).Union.fields;
+                const fields = @typeInfo(Request.Params).@"union".fields;
 
                 inline for (fields) |field| {
                     if (std.mem.eql(u8, msg_method, field.name)) {
@@ -629,7 +629,7 @@ pub const Message = struct {
 
             const msg_params = object.get("params") orelse .null;
 
-            const fields = @typeInfo(Notification).Union.fields;
+            const fields = @typeInfo(Notification).@"union".fields;
 
             inline for (fields) |field| {
                 if (std.mem.eql(u8, msg_method, field.name)) {
