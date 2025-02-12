@@ -1,5 +1,5 @@
 const std = @import("std");
-const types = @import("lsp.zig");
+const types = @import("lsp").types;
 
 pub const Encoding = enum {
     /// Character offsets count UTF-8 code units (e.g. bytes).

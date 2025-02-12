@@ -1,6 +1,7 @@
 const std = @import("std");
 const builtin = @import("builtin");
-const types = @import("lsp.zig");
+const lsp = @import("lsp");
+const types = lsp.types;
 const offsets = @import("offsets.zig");
 const Transport = @import("Transport.zig");
 
@@ -91,7 +92,7 @@ pub fn Server(comptime Handler: type) type {
             server.client_capabilities.deinit();
         }
 
-        pub fn sendToClientResponse(server: *Self, id: types.RequestId, result: anytype) error{OutOfMemory}![]u8 {
+        pub fn sendToClientResponse(server: *Self, id: lsp.JsonRPCMessage.ID, result: anytype) error{OutOfMemory}![]u8 {
             // TODO validate result type is a possible response
             // TODO validate response is from a client to server request
             // TODO validate result type
@@ -99,7 +100,7 @@ pub fn Server(comptime Handler: type) type {
             return try server.sendToClientInternal(id, null, null, "result", result);
         }
 
-        pub fn sendToClientRequest(server: *Self, id: types.RequestId, method: []const u8, params: anytype) error{OutOfMemory}![]u8 {
+        pub fn sendToClientRequest(server: *Self, id: lsp.JsonRPCMessage.ID, method: []const u8, params: anytype) error{OutOfMemory}![]u8 {
             std.debug.assert(isRequestMethod(method));
             // TODO validate method is server to client
             // TODO validate params type
@@ -115,15 +116,15 @@ pub fn Server(comptime Handler: type) type {
             return try server.sendToClientInternal(null, method, null, "params", params);
         }
 
-        pub fn sendToClientResponseError(server: *Self, id: types.RequestId, err: ?types.ResponseError) error{OutOfMemory}![]u8 {
+        pub fn sendToClientResponseError(server: *Self, id: lsp.JsonRPCMessage.ID, err: ?lsp.JsonRPCMessage.Response.Error) error{OutOfMemory}![]u8 {
             return try server.sendToClientInternal(id, null, err, "", null);
         }
 
         fn sendToClientInternal(
             server: *Self,
-            maybe_id: ?types.RequestId,
+            maybe_id: ?lsp.JsonRPCMessage.ID,
             maybe_method: ?[]const u8,
-            maybe_err: ?types.ResponseError,
+            maybe_err: ?lsp.JsonRPCMessage.Response.Error,
             extra_name: []const u8,
             extra: anytype,
         ) error{OutOfMemory}![]u8 {
@@ -277,6 +278,9 @@ pub fn Server(comptime Handler: type) type {
                     if (server.status != .initialized) return error.InvalidRequest; // received a shutdown request but the server is not initialized!
                     server.status = .shutdown;
                     return try server.handler.shutdown(arena, params);
+                },
+                .@"textDocument/documentSymbol" => {
+                    return try server.handler.documentSymbol(arena, params);
                 },
                 .@"textDocument/completion" => {
                     return try server.handler.completion(arena, params);
@@ -511,7 +515,7 @@ pub const Message = struct {
     response: ?Response = null,
 
     pub const Request = struct {
-        id: types.RequestId,
+        id: lsp.JsonRPCMessage.ID,
         params: Params,
 
         pub const Params = union(enum) {
@@ -524,6 +528,7 @@ pub const Message = struct {
             @"textDocument/formatting": types.DocumentFormattingParams,
             @"textDocument/semanticTokens/full": types.SemanticTokensParams,
             @"textDocument/inlayHint": types.InlayHintParams,
+            @"textDocument/documentSymbol": types.DocumentSymbolParams,
             // Not every request is included here so that the we reduce the amount of parsing code we have generate
             unknown: []const u8,
         };
@@ -541,12 +546,12 @@ pub const Message = struct {
     };
 
     pub const Response = struct {
-        id: types.RequestId,
+        id: lsp.JsonRPCMessage.ID,
         data: Data,
 
         pub const Data = union(enum) {
             result: types.LSPAny,
-            @"error": types.ResponseError,
+            @"error": lsp.JsonRPCMessage.Response.Error,
         };
     };
 
@@ -565,7 +570,7 @@ pub const Message = struct {
 
         @setEvalBranchQuota(10_000);
         if (object.get("id")) |id_obj| {
-            const msg_id = try std.json.parseFromValueLeaky(types.RequestId, allocator, id_obj, options);
+            const msg_id = try std.json.parseFromValueLeaky(lsp.JsonRPCMessage.ID, allocator, id_obj, options);
 
             if (object.get("method")) |method_obj| {
                 const msg_method = try std.json.parseFromValueLeaky([]const u8, allocator, method_obj, options);
@@ -601,7 +606,7 @@ pub const Message = struct {
                 const result = object.get("result") orelse .null;
                 const error_obj = object.get("error") orelse .null;
 
-                const err = try std.json.parseFromValueLeaky(?types.ResponseError, allocator, error_obj, options);
+                const err = try std.json.parseFromValueLeaky(?lsp.JsonRPCMessage.Response.Error, allocator, error_obj, options);
 
                 if (result != .null and err != null) return error.UnexpectedToken;
 
