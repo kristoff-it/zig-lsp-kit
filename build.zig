@@ -6,12 +6,18 @@ pub fn build(b: *std.Build) !void {
 
     const diffz = b.dependency("diffz", .{});
 
-    _ = b.addModule("lsp", .{
-        .root_source_file = b.path("src/root.zig"),
-        .target = target,
-        .optimize = optimize,
-        .imports = &.{
-            .{ .name = "diffz", .module = diffz.module("diffz") },
+    const module = b.addModule(
+        "lsp",
+        .{
+            .root_source_file = b.path("src/root.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "diffz", .module = diffz.module("diffz") },
+            },
         },
-    });
+    );
+
+    const lsp_codegen = b.dependency("lsp-codegen", .{});
+    module.addImport("lsp", lsp_codegen.module("lsp"));
 }

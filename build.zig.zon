@@ -6,6 +6,10 @@
             .url = "https://github.com/ziglibs/diffz/archive/ef45c00d655e5e40faf35afbbde81a1fa5ed7ffb.tar.gz",
             .hash = "1220102cb2c669d82184fb1dc5380193d37d68b54e8d75b76b2d155b9af7d7e2e76d",
         },
+        .@"lsp-codegen" = .{
+            .url = "git+https://github.com/zigtools/zig-lsp-codegen.git#e1f281f67ac2cb8c19d3cabe9cfae46fde691c56",
+            .hash = "12208e12a10e78de19f140acae65e6edc20189459dd208d5f6b7afdf0aa894113d1b",
+        },
     },
     .paths = .{"."},
 }
