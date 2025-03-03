@@ -1,11 +1,19 @@
 .{
-    .name = "zig-lsp-kit",
-    .version = "0.0.0",
+    .name = .lsp_kit,
+    .fingerprint = 0x91a538b13b310084,
+    .minimum_zig_version = "0.14.0-dev.3451+d8d2aa9af",
+    .version = "0.1.0",
     .dependencies = .{
         .diffz = .{
             .url = "https://github.com/ziglibs/diffz/archive/ef45c00d655e5e40faf35afbbde81a1fa5ed7ffb.tar.gz",
             .hash = "1220102cb2c669d82184fb1dc5380193d37d68b54e8d75b76b2d155b9af7d7e2e76d",
         },
     },
-    .paths = .{"."},
+    .paths = .{
+        "LICENSE",
+        "README.md",
+        "build.zig",
+        "build.zig.zon",
+        "src",
+    },
 }
